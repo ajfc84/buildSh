@@ -20,6 +20,8 @@ package_deb()
         return 1
     fi
 
+    echo "INFO: Creating distribution archive..."
+
     PKG_DIR="$BUILD_DIR/${NAME}_pkg"
     DEB_DIR="$PKG_DIR/DEBIAN"
     ARCH="$(dpkg --print-architecture 2>/dev/null || echo amd64)"
