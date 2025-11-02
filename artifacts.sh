@@ -8,6 +8,7 @@ upload_artifacts()
         echo "Usage: $0 upload_artifacts <file1> <file2> ..." >&2
         exit 1
     fi
+    echo "INFO: Uploading distribution archive..."
 
     HOST=${CI_REPOSITORY_URL}
     USERNAME=${CI_REPOSITORY_USER}
