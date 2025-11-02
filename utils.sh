@@ -12,20 +12,28 @@ read_passwd()
 
 mk_build()
 {
-    build_dir="${SUB_PROJECT_DIR}/$1"
+    BUILD_DIR="$1"
+
+    if [ -z "$BUILD_DIR" ] ||  [ -z "$2" ];
+    then
+        echo "Usage: mk_build <BUILD_DIR> <SRC_DIRS...>" >&2
+        exit 1
+    fi
+
+    BUILD_DIR="${SUB_PROJECT_DIR}/${BUILD_DIR}"
+
+    rm -rf "$BUILD_DIR"
+    mkdir -p "$BUILD_DIR"
+
     shift
-
-    rm -rf "$build_dir"
-    mkdir -p "$build_dir"
-
     for sub in "$@"; do
-        src_dir="${CI_PROJECT_DIR}/$sub"
+        src_dir="${SUB_PROJECT_DIR}/$sub"
 
         if [ ! -d "$src_dir" ]; then
             echo "Error: directory '$src_dir' not found" >&2
-            return 1
+            exit 1
         fi
 
-        cp -R "$src_dir"/. "$build_dir/"
+        cp -R "$src_dir"/. "$BUILD_DIR/"
     done
 }
