@@ -37,3 +37,24 @@ mk_build()
         cp -R "$src_dir"/. "$BUILD_DIR/"
     done
 }
+
+uuidgen_safe() {
+    if command -v uuidgen >/dev/null 2>&1; then
+        uuidgen
+    else
+        echo "00000000-0000-0000-0000-`date +%s`"
+    fi
+}
+
+to_camel_case() {
+    input=$1
+    output=""
+    IFS='-_'
+    for part in $input; do
+        first=`printf "%s" "$part" | cut -c1 | tr '[:lower:]' '[:upper:]'`
+        rest=`printf "%s" "$part" | cut -c2- | tr '[:upper:]' '[:lower:]'`
+        output="${output}${first}${rest}"
+    done
+    unset IFS
+    printf "%s\n" "$output"
+}

@@ -5,18 +5,21 @@ package_deb()
 {
     PROJECT_NAME="$1"
     VERSION="$2"
-    DIST="${SUB_PROJECT_DIR}/$3"
+    DIST="$3"
     AUTHOR_NAME="$4"
     AUTHOR_EMAIL="$5"
 
-    if [ -z "$PROJECT_NAME" ] || [ -z "$VERSION" ] || [ -z "$DIST" ] || [ -z "$AUTHOR_NAME" ] || [ -z "$AUTHOR_EMAIL" ]; then
+    if [ -z "$PROJECT_NAME" ] || [ -z "$VERSION" ] || [ -z "$DIST" ] || [ -z "$AUTHOR_NAME" ] || [ -z "$AUTHOR_EMAIL" ];
+    then
         echo "Usage: package_deb <PROJECT_NAME> <VERSION> <DIST> <AUTHOR_NAME> <AUTHOR_EMAIL>" >&2
         return 1
     fi
 
+    DIST="${SUB_PROJECT_DIR}/${DIST}"
     BIN_PATH="${DIST}/${PROJECT_NAME}"
 
-    if [ ! -f "$BIN_PATH" ]; then
+    if [ ! -f "$BIN_PATH" ];
+    then
         echo "Binary not found: $BIN_PATH" >&2
         return 1
     fi
