@@ -2,13 +2,13 @@
 
 go_build()
 {
-    PROJECT_NAME="$1"
+    BIN_NAME="$1"
     SRC="$2"
     DIST="$3"
 
-    if [ -z "$PROJECT_NAME" ] ||  [ -z "$SRC" ] ||  [ -z "$DIST" ];
+    if [ -z "$BIN_NAME" ] ||  [ -z "$SRC" ] ||  [ -z "$DIST" ];
     then
-        echo "Usage: go_build <PROJECT_NAME> <SRC> <DIST>" >&2
+        echo "Usage: go_build <BIN_NAME> <SRC> <DIST>" >&2
         exit 1
     fi
 
@@ -20,8 +20,8 @@ go_build()
     go -C "${SRC}" mod download
 
     echo "INFO: Building for Linux amd64..."
-    GOOS=linux GOARCH=amd64 go -C "${SRC}" build -o "${DIST}/${PROJECT_NAME}" .
-    chmod +x "${DIST}/${PROJECT_NAME}"
+    GOOS=linux GOARCH=amd64 go -C "${SRC}" build -o "${DIST}/${BIN_NAME}" .
+    chmod +x "${DIST}/${BIN_NAME}"
 }
 
 go_build_win()
