@@ -1,11 +1,13 @@
 #!/bin/sh
 
+# POSIX build script for generating and optionally signing an MSI installer
 # Requirements (installed on the Windows host):
 #   - WiX Toolset (candle.exe, light.exe)
 #   - Windows SDK (signtool.exe)
 
 
 . "${CI_PROJECT_DIR}/buildSh/utils.sh"
+. "${CI_PROJECT_DIR}/buildSh/version_sanitize.sh"
 
 
 find_latest_signtool() {
@@ -14,8 +16,8 @@ find_latest_signtool() {
     if [ -d "$WIN_KITS_BIN_ROOT" ]; then
         LATEST=`ls -1 "$WIN_KITS_BIN_ROOT" 2>/dev/null | sort -V | tail -n1`
         if [ -n "$LATEST" ] && [ -x "$WIN_KITS_BIN_ROOT/$LATEST/x64/signtool.exe" ]; then
-        echo "$WIN_KITS_BIN_ROOT/$LATEST/x64/signtool.exe"
-        return 0
+            echo "$WIN_KITS_BIN_ROOT/$LATEST/x64/signtool.exe"
+            return 0
         fi
     fi
     return 1
@@ -26,17 +28,17 @@ package_msi() {
     VERSION="$2"
     DIST="$3"
 
-    if [ -z "$PROJECT_NAME" ] || [ -z "$VERSION" ] || [ -z "$DIST" ];
-    then
+    if [ -z "$PROJECT_NAME" ] || [ -z "$VERSION" ] || [ -z "$DIST" ]; then
         echo "Usage: package_msi <PROJECT_NAME> <VERSION> <DIST>" >&2
         exit 1
     fi
 
-    if [ -z "$UPGRADE_CODE" ] || [ -z "$WIX_BIN" ] || [ -z "$WIN_KITS_BIN_ROOT" ];
-    then
+    if [ -z "$UPGRADE_CODE" ] || [ -z "$WIX_BIN" ] || [ -z "$WIN_KITS_BIN_ROOT" ]; then
         echo "ERROR: package_msi requires environment variables: UPGRADE_CODE, WIX_BIN, WIN_KITS_BIN_ROOT" >&2
         exit 1
     fi
+
+    VERSION=$(sanitize_version "${VERSION}")
 
     DIST="${SUB_PROJECT_DIR}/${DIST}"
     BIN_PATH="${DIST}/${PROJECT_NAME}.exe"
@@ -65,8 +67,8 @@ package_msi() {
     else
         SIGNTOOL=`find_latest_signtool "${WIN_KITS_BIN_ROOT}" || true`
         if [ ! -x "$SIGNTOOL" ]; then
-        echo "ERROR: signtool.exe not found. Install Windows SDK on host." >&2
-        exit 1
+            echo "ERROR: signtool.exe not found. Install Windows SDK on host." >&2
+            exit 1
         fi
         SIGN_MODE="pfx"
     fi
@@ -74,6 +76,12 @@ package_msi() {
     MSI_FILE="${DIST}/${PROJECT_NAME}_${VERSION}.msi"
     WXS_FILE="${DIST}/${PROJECT_NAME}.wxs"
     WIXOBJ_FILE="${DIST}/${PROJECT_NAME}.wixobj"
+
+    # translate paths for WiX and signtool
+    BIN_PATH_WIN="$(wslpath -w "$BIN_PATH")"
+    MSI_FILE_WIN="$(wslpath -w "$MSI_FILE")"
+    WIXOBJ_FILE_WIN="$(wslpath -w "$WIXOBJ_FILE")"
+    WXS_FILE_WIN="$(wslpath -w "$WXS_FILE")"
 
     GUID_COMPONENT_MAIN=`uuidgen_safe`
     GUID_COMPONENT_SERVICE=`uuidgen_safe`
@@ -94,21 +102,22 @@ package_msi() {
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLFOLDER" Name="${DISPLAY_NAME}">
           <Component Id="MainExecutable" Guid="${GUID_COMPONENT_MAIN}">
-            <File Id="FxShopExe" Source="${BIN_PATH}" KeyPath="yes" />
+            <File Id="MainExe" Source="${BIN_PATH_WIN}" KeyPath="yes" />
           </Component>
 
-          <Component Id="FxShopService" Guid="${GUID_COMPONENT_SERVICE}">
-            <File Id="FxShopExeSvc" Source="${BIN_PATH}" KeyPath="yes" />
+          <Component Id="MainService" Guid="${GUID_COMPONENT_SERVICE}">
+            <File Id="ServiceExe" Source="${BIN_PATH_WIN}" KeyPath="yes" />
             <ServiceInstall
-                Id="FxShopPrintService"
+                Id="${DISPLAY_NAME}ServiceInstall"
                 Name="${PROJECT_NAME}"
                 DisplayName="${DISPLAY_NAME} Service"
                 Description="${DESCRIPTION}"
                 Start="auto"
                 Type="ownProcess"
-                Vital="yes" />
+                Vital="yes"
+                ErrorControl="normal" />
             <ServiceControl
-                Id="SvcControl"
+                Id="${DISPLAY_NAME}ServiceControl"
                 Name="${PROJECT_NAME}"
                 Start="install"
                 Stop="both"
@@ -117,15 +126,15 @@ package_msi() {
           </Component>
 
           <Directory Id="ProgramMenuFolder">
-            <Directory Id="FxShopPrintProgramMenu" Name="${DISPLAY_NAME}">
+            <Directory Id="${DISPLAY_NAME}ProgramMenu" Name="${DISPLAY_NAME}">
               <Component Id="StartMenuShortcut" Guid="${GUID_COMPONENT_SHORTCUT}">
                 <Shortcut
-                    Id="FxShopShortcut"
+                    Id="${DISPLAY_NAME}Shortcut"
                     Name="${DISPLAY_NAME}"
                     Description="${DESCRIPTION}"
                     Target="[INSTALLFOLDER]${PROJECT_NAME}.exe"
                     WorkingDirectory="INSTALLFOLDER" />
-                <RemoveFolder Id="RemoveFxShopMenu" On="uninstall" />
+                <RemoveFolder Id="Remove${DISPLAY_NAME}Menu" On="uninstall" />
                 <RegistryValue Root="HKCU"
                                Key="Software\\${MANUFACTURER}\\${DISPLAY_NAME}"
                                Name="installed"
@@ -142,7 +151,7 @@ package_msi() {
 
     <Feature Id="MainFeature" Title="${DISPLAY_NAME}" Level="1">
       <ComponentRef Id="MainExecutable" />
-      <ComponentRef Id="FxShopService" />
+      <ComponentRef Id="MainService" />
       <ComponentRef Id="StartMenuShortcut" />
     </Feature>
   </Product>
@@ -150,21 +159,21 @@ package_msi() {
 EOF
 
     echo "==> Running WiX compiler..."
-    "$WIX_BIN/candle.exe" "$WXS_FILE" -out "$WIXOBJ_FILE"
+    "$WIX_BIN/candle.exe" "$WXS_FILE_WIN" -out "$WIXOBJ_FILE_WIN"
     "$WIX_BIN/light.exe" -ext WixUIExtension -ext WixUtilExtension \
-        -out "$MSI_FILE" "$WIXOBJ_FILE"
+        -out "$MSI_FILE_WIN" "$WIXOBJ_FILE_WIN"
 
     echo "==> MSI created: $MSI_FILE"
 
     if [ "$SIGN_MODE" = "pfx" ]; then
         echo "==> Signing MSI..."
         "$SIGNTOOL" sign \
-        /fd SHA256 \
-        /td SHA256 \
-        /tr "$TIMESTAMP_URL" \
-        /f "$PFX_FILE" \
-        /p "$PFX_PASS" \
-        "$MSI_FILE"
+            /fd SHA256 \
+            /td SHA256 \
+            /tr "$TIMESTAMP_URL" \
+            /f "$PFX_FILE" \
+            /p "$PFX_PASS" \
+            "$MSI_FILE_WIN"
         echo "==> Signature complete."
     else
         echo "==> (No signature applied.)"
