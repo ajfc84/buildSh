@@ -3,23 +3,29 @@
 
 upload_artifacts()
 {
-    if [ "$#" -eq 0 ]; then
-        echo "ERROR: no artifact filenames provided" >&2
-        echo "Usage: $0 upload_artifacts <file1> <file2> ..." >&2
-        exit 1
-    fi
-    echo "INFO: Uploading distribution archive..."
-
-    HOST=${CI_REPOSITORY_URL}
-    USERNAME=${CI_REPOSITORY_USER}
-
-    SOURCE_DIR="${SUB_PROJECT_DIR}/$1"
+    SOURCE_DIR="$1"
     REMOTE_DIR="$2"
     shift 2
 
-    echo "Uploading artifacts to $HOST:$REMOTE_DIR"
+    if [ -z "$SOURCE_DIR" ] ||  [ -z "$REMOTE_DIR" ];
+    then
+        echo "Usage: $0 upload_artifacts <SOURCE_DIR> <REMOTE_DIR> <file1> <file2> ..." >&2
+        exit 1
+    fi
 
-    ssh "${USERNAME}@$HOST" "mkdir -p '$REMOTE_DIR'"
+    if [ -z "$CI_REPOSITORY_URL" ] ||  [ -z "$CI_REPOSITORY_USER" ];
+    then
+        echo "ERROR: $0 requires environment variables: CI_REPOSITORY_URL, CI_REPOSITORY_USER" >&2
+        exit 1
+    fi
+
+    echo "INFO: Uploading distribution archive..."
+
+    SOURCE_DIR="${SUB_PROJECT_DIR}/${SOURCE_DIR}"
+
+    echo "Uploading artifacts to $CI_REPOSITORY_URL:$REMOTE_DIR"
+
+    ssh "${CI_REPOSITORY_USER}@$CI_REPOSITORY_URL" "mkdir -p '$REMOTE_DIR'"
 
     for a in "$@"; do
         artifact="${SOURCE_DIR}/$a"
@@ -28,8 +34,8 @@ upload_artifacts()
             continue
         fi
         echo "Uploading: $artifact"
-        scp -r "$artifact" "${USERNAME}@$HOST:$REMOTE_DIR/"
+        scp -r "$artifact" "${CI_REPOSITORY_USER}@$CI_REPOSITORY_URL:$REMOTE_DIR/"
     done
 
-    echo "Artifacts uploaded successfully to $HOST:$REMOTE_DIR"
+    echo "Artifacts uploaded successfully to $CI_REPOSITORY_URL:$REMOTE_DIR"
 }

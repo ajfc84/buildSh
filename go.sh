@@ -8,7 +8,7 @@ go_build()
 
     if [ -z "$BIN_NAME" ] ||  [ -z "$SRC" ] ||  [ -z "$DIST" ];
     then
-        echo "Usage: go_build <BIN_NAME> <SRC> <DIST>" >&2
+        echo "Usage: $0 <BIN_NAME> <SRC> <DIST>" >&2
         exit 1
     fi
 
@@ -31,7 +31,7 @@ go_build_win()
 
     if [ -z "$PROJECT_NAME" ] ||  [ -z "$SRC" ];
     then
-        echo "Usage: go_build_win <PROJECT_NAME> <SRC>" >&2
+        echo "Usage: $0 <PROJECT_NAME> <SRC>" >&2
         exit 1
     fi
 
@@ -54,19 +54,19 @@ go_zip()
 
     if [ -z "$BUILD_DIR" ] ||  [ -z "$BIN_NAME" ];
     then
-        echo "Usage: go_zip <BUILD_DIR> <BIN_NAME>" >&2
+        echo "Usage: $0 <BUILD_DIR> <BIN_NAME>" >&2
         exit 1
     fi
 
     if [ -z "$CI_PROJECT_NAME" ] ||  [ -z "$IMAGE_VERSION" ];
     then
-        echo "ERROR: go_zip requires environment variables: CI_PROJECT_NAME, IMAGE_VERSION" >&2
+        echo "ERROR: $0 requires environment variables: CI_PROJECT_NAME, IMAGE_VERSION" >&2
         exit 1
     fi
 
     BUILD_DIR="${SUB_PROJECT_DIR}/${BUILD_DIR}"
 
     echo "INFO: Creating distribution archive..."
-    zip -j "${BUILD_DIR}/${CI_PROJECT_NAME}-v${IMAGE_VERSION}.zip" "${BUILD_DIR}/${BIN_NAME}" "${BUILD_DIR}/${BIN_NAME}.exe"
+    zip -j "${BUILD_DIR}/${CI_PROJECT_NAME}-v${IMAGE_VERSION}.zip" "${BUILD_DIR}/${BIN_NAME}"
     echo "INFO: distribution archive ${CI_PROJECT_NAME}-v${IMAGE_VERSION}.zip created"
 }
