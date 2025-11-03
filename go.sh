@@ -22,9 +22,29 @@ go_build()
     echo "INFO: Building for Linux amd64..."
     GOOS=linux GOARCH=amd64 go -C "${SRC}" build -o "${DIST}/${PROJECT_NAME}" .
     chmod +x "${DIST}/${PROJECT_NAME}"
+}
+
+go_build_win()
+{
+    PROJECT_NAME="$1"
+    SRC="$2"
+
+    if [ -z "$PROJECT_NAME" ] ||  [ -z "$SRC" ];
+    then
+        echo "Usage: go_build_win <PROJECT_NAME> <SRC>" >&2
+        exit 1
+    fi
+
+    SRC="${SUB_PROJECT_DIR}/${SRC}"
+    DISPLAY_NAME=$(to_camel_case "${PROJECT_NAME}")
+    DIST_WIN="/mnt/c/${DISPLAY_NAME}"
+
+    echo "INFO: Installing Go dependencies..."
+    go -C "${SRC}" mod tidy
+    go -C "${SRC}" mod download
 
     echo "INFO: Building for Windows amd64..."
-    GOOS=windows GOARCH=amd64 go -C "${SRC}" build -o "${DIST}/${PROJECT_NAME}.exe" .
+    GOOS=windows GOARCH=amd64 go -C "${SRC}" build -o "${DIST_WIN}/${PROJECT_NAME}.exe" .
 }
 
 go_zip()

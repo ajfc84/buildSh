@@ -38,6 +38,23 @@ mk_build()
     done
 }
 
+mk_build_win()
+{
+    PROJECT_NAME="$1"
+
+    if [ -z "$PROJECT_NAME" ];
+    then
+        echo "Usage: mk_build_win <PROJECT_NAME>" >&2
+        exit 1
+    fi
+
+    DISPLAY_NAME=$(to_camel_case "${PROJECT_NAME}")
+    BUILD_DIR="/mnt/c/${DISPLAY_NAME}"
+
+    rm -rf "$BUILD_DIR"
+    mkdir -p "$BUILD_DIR"
+}
+
 uuidgen_safe() {
     if command -v uuidgen >/dev/null 2>&1; then
         uuidgen

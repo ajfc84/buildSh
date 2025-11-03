@@ -1,14 +1,8 @@
 #!/bin/sh
 
-# POSIX build script for generating and optionally signing an MSI installer
-# Requirements (installed on the Windows host):
-#   - WiX Toolset (candle.exe, light.exe)
-#   - Windows SDK (signtool.exe)
-
 
 . "${CI_PROJECT_DIR}/buildSh/utils.sh"
 . "${CI_PROJECT_DIR}/buildSh/version_sanitize.sh"
-
 
 find_latest_signtool() {
     WIN_KITS_BIN_ROOT="$1"
@@ -23,13 +17,16 @@ find_latest_signtool() {
     return 1
 }
 
+## POSIX build script for generating and optionally signing an MSI installer
+## Requirements (installed on the Windows host):
+##   - WiX Toolset (candle.exe, light.exe)
+##   - Windows SDK (signtool.exe)
 package_msi() {
     PROJECT_NAME="$1"
     VERSION="$2"
-    DIST="$3"
 
-    if [ -z "$PROJECT_NAME" ] || [ -z "$VERSION" ] || [ -z "$DIST" ]; then
-        echo "Usage: package_msi <PROJECT_NAME> <VERSION> <DIST>" >&2
+    if [ -z "$PROJECT_NAME" ] || [ -z "$VERSION" ]; then
+        echo "Usage: package_msi <PROJECT_NAME> <VERSION>" >&2
         exit 1
     fi
 
@@ -39,10 +36,9 @@ package_msi() {
     fi
 
     VERSION=$(sanitize_version "${VERSION}")
-
-    DIST="${SUB_PROJECT_DIR}/${DIST}"
-    BIN_PATH="${DIST}/${PROJECT_NAME}.exe"
     DISPLAY_NAME=$(to_camel_case "${PROJECT_NAME}")
+    DIST_WIN="/mnt/c/${DISPLAY_NAME}"
+    BIN_PATH="${DIST_WIN}/${PROJECT_NAME}.exe"
 
     MANUFACTURER="FxSoftTech"
     DESCRIPTION="${DISPLAY_NAME} agent"
@@ -73,9 +69,9 @@ package_msi() {
         SIGN_MODE="pfx"
     fi
 
-    MSI_FILE="${DIST}/${PROJECT_NAME}_${VERSION}.msi"
-    WXS_FILE="${DIST}/${PROJECT_NAME}.wxs"
-    WIXOBJ_FILE="${DIST}/${PROJECT_NAME}.wixobj"
+    MSI_FILE="${DIST_WIN}/${PROJECT_NAME}_${VERSION}.msi"
+    WXS_FILE="${DIST_WIN}/${PROJECT_NAME}.wxs"
+    WIXOBJ_FILE="${DIST_WIN}/${PROJECT_NAME}.wixobj"
 
     # translate paths for WiX and signtool
     BIN_PATH_WIN="$(wslpath -w "$BIN_PATH")"
@@ -84,7 +80,6 @@ package_msi() {
     WXS_FILE_WIN="$(wslpath -w "$WXS_FILE")"
 
     GUID_COMPONENT_MAIN=`uuidgen_safe`
-    GUID_COMPONENT_SERVICE=`uuidgen_safe`
     GUID_COMPONENT_SHORTCUT=`uuidgen_safe`
 
     echo "==> Generating WiX XML..."
@@ -103,10 +98,6 @@ package_msi() {
         <Directory Id="INSTALLFOLDER" Name="${DISPLAY_NAME}">
           <Component Id="MainExecutable" Guid="${GUID_COMPONENT_MAIN}">
             <File Id="MainExe" Source="${BIN_PATH_WIN}" KeyPath="yes" />
-          </Component>
-
-          <Component Id="MainService" Guid="${GUID_COMPONENT_SERVICE}">
-            <File Id="ServiceExe" Source="${BIN_PATH_WIN}" KeyPath="yes" />
             <ServiceInstall
                 Id="${DISPLAY_NAME}ServiceInstall"
                 Name="${PROJECT_NAME}"
@@ -144,14 +135,12 @@ package_msi() {
               </Component>
             </Directory>
           </Directory>
-
         </Directory>
       </Directory>
     </Directory>
 
     <Feature Id="MainFeature" Title="${DISPLAY_NAME}" Level="1">
       <ComponentRef Id="MainExecutable" />
-      <ComponentRef Id="MainService" />
       <ComponentRef Id="StartMenuShortcut" />
     </Feature>
   </Product>
