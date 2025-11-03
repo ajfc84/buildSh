@@ -2,19 +2,29 @@
 
 
 npm_build() {
-    src_dir="${CI_PROJECT_DIR}/${1}/"
-    build_dir="${SUB_PROJECT_DIR}/build/${2}/"
+    SRC_DIR="$1"
+    BUILD_DIR="$2"
 
-    if [ ! -d "$src_dir" ]; then
-        echo "Error: directory '$src_dir' not found" >&2
+    if [ -z "$SRC_DIR" ] || [ -z "$BUILD_DIR" ];
+    then
+        echo "Usage: $0 <SRC_DIR> <BUILD_DIR>" >&2
+        exit 1
+    fi
+
+    SRC_DIR="${SUB_PROJECT_DIR}/${SRC_DIR}/"
+    BUILD_DIR="${SUB_PROJECT_DIR}/build/${BUILD_DIR}/"
+
+    if [ ! -d "$SRC_DIR" ];
+    then
+        echo "Error: directory '$SRC_DIR' not found" >&2
         return 1
     fi
 
-    rm -rf "$build_dir"
-    mkdir -p "$build_dir"
+    rm -rf "$BUILD_DIR"
+    mkdir -p "$BUILD_DIR"
 
-    echo "Running npm install and Vite build in $src_dir"
-    (cd "$src_dir" && npm install && npx vite build --outDir "$build_dir") || {
+    echo "Running npm install and Vite build in $SRC_DIR"
+    (cd "$SRC_DIR" && npm install && npx vite build --outDir "$BUILD_DIR") || {
         echo "Error: failed to build React project with Vite"
         return 1
     }
