@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 . "${CI_PROJECT_DIR}/buildSh/utils.sh"
 . "${CI_PROJECT_DIR}/buildSh/version_sanitize.sh"
 
@@ -8,7 +7,7 @@ find_latest_signtool() {
     WIN_KITS_BIN_ROOT="$1"
 
     if [ -d "$WIN_KITS_BIN_ROOT" ]; then
-        LATEST=`ls -1 "$WIN_KITS_BIN_ROOT" 2>/dev/null | sort -V | tail -n1`
+        LATEST=$(ls -1 "$WIN_KITS_BIN_ROOT" 2>/dev/null | sort -V | tail -n1)
         if [ -n "$LATEST" ] && [ -x "$WIN_KITS_BIN_ROOT/$LATEST/x64/signtool.exe" ]; then
             echo "$WIN_KITS_BIN_ROOT/$LATEST/x64/signtool.exe"
             return 0
@@ -41,7 +40,7 @@ package_msi() {
     BIN_PATH="${DIST_WIN}/${PROJECT_NAME}.exe"
 
     MANUFACTURER="FxSoftTech"
-    DESCRIPTION="${DISPLAY_NAME} agent"
+    DESCRIPTION="Thermal print agent for FxShop POS system"
     TIMESTAMP_URL="${TIMESTAMP_URL:-http://timestamp.digicert.com}"
 
     echo "==> Packaging MSI ${DISPLAY_NAME} ${VERSION}"
@@ -61,7 +60,7 @@ package_msi() {
         echo "WARNING: PFX_FILE/PFX_PASS not set — package will be unsigned."
         SIGN_MODE="none"
     else
-        SIGNTOOL=`find_latest_signtool "${WIN_KITS_BIN_ROOT}" || true`
+        SIGNTOOL=$(find_latest_signtool "${WIN_KITS_BIN_ROOT}" || true)
         if [ ! -x "$SIGNTOOL" ]; then
             echo "ERROR: signtool.exe not found. Install Windows SDK on host." >&2
             exit 1
@@ -79,8 +78,8 @@ package_msi() {
     WIXOBJ_FILE_WIN="$(wslpath -w "$WIXOBJ_FILE")"
     WXS_FILE_WIN="$(wslpath -w "$WXS_FILE")"
 
-    GUID_COMPONENT_MAIN=`uuidgen_safe`
-    GUID_COMPONENT_SHORTCUT=`uuidgen_safe`
+    GUID_COMPONENT_MAIN=$(uuidgen_safe)
+    GUID_COMPONENT_SHORTCUT=$(uuidgen_safe)
 
     echo "==> Generating WiX XML..."
     cat > "$WXS_FILE" <<EOF
@@ -96,17 +95,22 @@ package_msi() {
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLFOLDER" Name="${DISPLAY_NAME}">
+          <!-- Main executable and service definition -->
           <Component Id="MainExecutable" Guid="${GUID_COMPONENT_MAIN}">
             <File Id="MainExe" Source="${BIN_PATH_WIN}" KeyPath="yes" />
+
+            <!-- Register the Windows service -->
             <ServiceInstall
                 Id="${DISPLAY_NAME}ServiceInstall"
                 Name="${PROJECT_NAME}"
-                DisplayName="${DISPLAY_NAME} Service"
-                Description="${DESCRIPTION}"
+                DisplayName="Fx Shop Print Agent"
+                Description="Thermal print agent for FxShop POS system"
                 Start="auto"
                 Type="ownProcess"
                 Vital="yes"
                 ErrorControl="normal" />
+
+            <!-- Control service during install/uninstall -->
             <ServiceControl
                 Id="${DISPLAY_NAME}ServiceControl"
                 Name="${PROJECT_NAME}"
@@ -114,8 +118,17 @@ package_msi() {
                 Stop="both"
                 Remove="uninstall"
                 Wait="yes" />
+
+            <!-- Optional registry key (no KeyPath to avoid CNDL0042) -->
+            <RegistryValue
+                Root="HKLM"
+                Key="Software\\${MANUFACTURER}\\${DISPLAY_NAME}"
+                Name="InstallPath"
+                Type="string"
+                Value="[INSTALLFOLDER]" />
           </Component>
 
+          <!-- Optional Start Menu shortcut -->
           <Directory Id="ProgramMenuFolder">
             <Directory Id="${DISPLAY_NAME}ProgramMenu" Name="${DISPLAY_NAME}">
               <Component Id="StartMenuShortcut" Guid="${GUID_COMPONENT_SHORTCUT}">
