@@ -22,10 +22,10 @@ upload_artifacts()
 
     echo "INFO: Uploading distribution archive..."
 
-    if [ "$SRC_TYPE" == "linux" ];
+    if [ "$SRC_TYPE" = "linux" ];
     then
         SOURCE_DIR="${SUB_PROJECT_DIR}/${SOURCE_DIR}"
-    else if [ "$SRC_TYPE" == "windows" ];
+    elif [ "$SRC_TYPE" = "windows" ];
     then
         SOURCE_DIR="/mnt/c/${SOURCE_DIR}"
     else
