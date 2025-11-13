@@ -24,13 +24,15 @@ package_msi() {
     PROJECT_NAME="$1"
     VERSION="$2"
 
-    if [ -z "$PROJECT_NAME" ] || [ -z "$VERSION" ]; then
-        echo "Usage: package_msi <PROJECT_NAME> <VERSION>" >&2
+    if [ -z "$PROJECT_NAME" ] || [ -z "$VERSION" ];
+    then
+        echo "Usage: $0 <PROJECT_NAME> <VERSION>" >&2
         exit 1
     fi
 
-    if [ -z "$UPGRADE_CODE" ] || [ -z "$WIX_BIN" ] || [ -z "$WIN_KITS_BIN_ROOT" ]; then
-        echo "ERROR: package_msi requires environment variables: UPGRADE_CODE, WIX_BIN, WIN_KITS_BIN_ROOT" >&2
+    if [ -z "$UPGRADE_CODE" ] || [ -z "$WIX_BIN" ] || [ -z "$WIN_KITS_BIN_ROOT" ];
+    then
+        echo "ERROR: $0 requires environment variables: UPGRADE_CODE, WIX_BIN, WIN_KITS_BIN_ROOT" >&2
         exit 1
     fi
 
