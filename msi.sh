@@ -43,7 +43,7 @@ package_msi() {
     DESCRIPTION="Thermal print agent for FxShop POS system"
     TIMESTAMP_URL="${TIMESTAMP_URL:-http://timestamp.digicert.com}"
 
-    echo "==> Packaging MSI ${DISPLAY_NAME} ${VERSION}"
+    echo "==> Packaging MSI ${DISPLAY_NAME} ${VERSION}" >&2
 
     if [ ! -f "$BIN_PATH" ]; then
         echo "ERROR: binary not found at $BIN_PATH" >&2
@@ -57,7 +57,7 @@ package_msi() {
     fi
 
     if [ -z "$PFX_FILE" ] || [ -z "$PFX_PASS" ]; then
-        echo "WARNING: PFX_FILE/PFX_PASS not set — package will be unsigned."
+        echo "WARNING: PFX_FILE/PFX_PASS not set — package will be unsigned." >&2
         SIGN_MODE="none"
     else
         SIGNTOOL=$(find_latest_signtool "${WIN_KITS_BIN_ROOT}" || true)
@@ -81,7 +81,7 @@ package_msi() {
     GUID_COMPONENT_MAIN=$(uuidgen_safe)
     GUID_COMPONENT_SHORTCUT=$(uuidgen_safe)
 
-    echo "==> Generating WiX XML..."
+    echo "==> Generating WiX XML..." >&2
     cat > "$WXS_FILE" <<EOF
 <?xml version="1.0"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
@@ -160,15 +160,15 @@ package_msi() {
 </Wix>
 EOF
 
-    echo "==> Running WiX compiler..."
+    echo "==> Running WiX compiler..." >&2
     "$WIX_BIN/candle.exe" "$WXS_FILE_WIN" -out "$WIXOBJ_FILE_WIN"
     "$WIX_BIN/light.exe" -ext WixUIExtension -ext WixUtilExtension \
         -out "$MSI_FILE_WIN" "$WIXOBJ_FILE_WIN"
 
-    echo "==> MSI created: $MSI_FILE"
+    echo "==> MSI created: $MSI_FILE" >&2
 
     if [ "$SIGN_MODE" = "pfx" ]; then
-        echo "==> Signing MSI..."
+        echo "==> Signing MSI..." >&2
         "$SIGNTOOL" sign \
             /fd SHA256 \
             /td SHA256 \
@@ -176,8 +176,10 @@ EOF
             /f "$PFX_FILE" \
             /p "$PFX_PASS" \
             "$MSI_FILE_WIN"
-        echo "==> Signature complete."
+        echo "==> Signature complete." >&2
     else
-        echo "==> (No signature applied.)"
+        echo "==> (No signature applied.)" >&2
     fi
+
+    echo "$(basename $MSI_FILE)"
 }

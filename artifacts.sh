@@ -5,11 +5,12 @@ upload_artifacts()
 {
     SOURCE_DIR="$1"
     REMOTE_DIR="$2"
-    shift 2
+    SRC_TYPE="$3"
+    shift 3
 
-    if [ -z "$SOURCE_DIR" ] ||  [ -z "$REMOTE_DIR" ];
+    if [ -z "$SOURCE_DIR" ] ||  [ -z "$REMOTE_DIR" ] ||  [ -z "$SRC_TYPE" ];
     then
-        echo "Usage: $0 upload_artifacts <SOURCE_DIR> <REMOTE_DIR> <file1> <file2> ..." >&2
+        echo "Usage: $0 upload_artifacts <SOURCE_DIR> <REMOTE_DIR> <SRC_TYPE> <file1> <file2> ..." >&2
         exit 1
     fi
 
@@ -21,7 +22,16 @@ upload_artifacts()
 
     echo "INFO: Uploading distribution archive..."
 
-    SOURCE_DIR="${SUB_PROJECT_DIR}/${SOURCE_DIR}"
+    if [ "$SRC_TYPE" == "linux" ];
+    then
+        SOURCE_DIR="${SUB_PROJECT_DIR}/${SOURCE_DIR}"
+    else if [ "$SRC_TYPE" == "windows" ];
+    then
+        SOURCE_DIR="/mnt/c/${SOURCE_DIR}"
+    else
+        echo "ERROR: $0 invalid: SRC_TYPE=$SRC_TYPE" >&2
+        exit 1
+    fi
 
     echo "Uploading artifacts to $CI_REPOSITORY_URL:$REMOTE_DIR"
 
