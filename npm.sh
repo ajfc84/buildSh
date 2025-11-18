@@ -11,8 +11,8 @@ npm_build() {
         exit 1
     fi
 
-    SRC_DIR="${SUB_PROJECT_DIR}/${SRC_DIR}/"
-    BUILD_DIR="${SUB_PROJECT_DIR}/build/${BUILD_DIR}/"
+    SRC_DIR="${SUB_PROJECT_DIR}/${SRC_DIR}"
+    BUILD_DIR="${SUB_PROJECT_DIR}/build/${BUILD_DIR}"
 
     if [ ! -d "$SRC_DIR" ];
     then
@@ -20,6 +20,7 @@ npm_build() {
         return 1
     fi
 
+    echo "INFO: $0 removing old build"
     rm -rf "$BUILD_DIR"
     mkdir -p "$BUILD_DIR"
 
@@ -28,4 +29,8 @@ npm_build() {
         echo "Error: failed to build React project with Vite"
         return 1
     }
+
+
+    echo "INFO: cleaning node_modules"
+    rm -rf "$SRC_DIR/node_modules"
 }

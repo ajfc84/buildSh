@@ -22,6 +22,7 @@ mk_build()
 
     BUILD_DIR="${SUB_PROJECT_DIR}/${BUILD_DIR}"
 
+    echo "INFO: $0 removing old build"
     rm -rf "$BUILD_DIR"
     mkdir -p "$BUILD_DIR"
 
