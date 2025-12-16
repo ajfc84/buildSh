@@ -14,10 +14,9 @@ mk_build()
 {
     BUILD_DIR="$1"
 
-    if [ -z "$BUILD_DIR" ] ||  [ -z "$2" ];
+    if [ -z "$BUILD_DIR" ];
     then
-        echo "Usage: mk_build <BUILD_DIR> <SRC_DIRS...>" >&2
-        exit 1
+        BUILD_DIR="build"
     fi
 
     BUILD_DIR="${SUB_PROJECT_DIR}/${BUILD_DIR}"
@@ -25,6 +24,36 @@ mk_build()
     echo "INFO: $0 removing old build"
     rm -rf "$BUILD_DIR"
     mkdir -p "$BUILD_DIR"
+}
+
+mk_build_win()
+{
+    PROJECT_NAME="$1"
+
+    if [ -z "$PROJECT_NAME" ];
+    then
+        echo "Usage: $0 <PROJECT_NAME>" >&2
+        exit 1
+    fi
+
+    DISPLAY_NAME=$(to_camel_case "${PROJECT_NAME}")
+    BUILD_DIR="/mnt/c/${DISPLAY_NAME}"
+
+    rm -rf "$BUILD_DIR"
+    mkdir -p "$BUILD_DIR"
+}
+
+cp_src()
+{
+    BUILD_DIR="$1"
+
+    if [ -z "$BUILD_DIR" ] ||  [ -z "$2" ];
+    then
+        echo "Usage: $0 <BUILD_DIR> <SRC_DIRS...>" >&2
+        exit 1
+    fi
+
+    BUILD_DIR="${SUB_PROJECT_DIR}/${BUILD_DIR}"
 
     shift
     for sub in "$@"; do
@@ -37,23 +66,6 @@ mk_build()
 
         cp -R "$src_dir"/. "$BUILD_DIR/"
     done
-}
-
-mk_build_win()
-{
-    PROJECT_NAME="$1"
-
-    if [ -z "$PROJECT_NAME" ];
-    then
-        echo "Usage: mk_build_win <PROJECT_NAME>" >&2
-        exit 1
-    fi
-
-    DISPLAY_NAME=$(to_camel_case "${PROJECT_NAME}")
-    BUILD_DIR="/mnt/c/${DISPLAY_NAME}"
-
-    rm -rf "$BUILD_DIR"
-    mkdir -p "$BUILD_DIR"
 }
 
 uuidgen_safe() {
