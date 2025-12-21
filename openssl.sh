@@ -3,17 +3,41 @@
 
 openssl_private_key()
 {
-  private_key_filename=${1}
+  PRIVATE_KEY_FILENAME="$1"
+  EXT="$2"
 
-  openssl genrsa -out "${private_key_filename}.pem"
+  if [ -z "$PRIVATE_KEY_FILENAME" ];
+  then
+      echo "Usage: $0 <PRIVATE_KEY_FILENAME> [EXT]" >&2
+      exit 1
+  fi
+
+  if [ -z "$EXT" ];
+  then
+      EXT="pem"
+  fi
+
+  openssl genrsa -out "${PRIVATE_KEY_FILENAME}.${EXT}" 1024
 }
 
 openssl_public_key()
 {
-  private_key_filename=${1}
-  public_key_filename=${2}
+  PRIVATE_KEY_FILENAME="$1"
+  PUBLIC_KEY_FILENAME="$2"
+  EXT="$3"
 
-  openssl rsa -in "${private_key_filename}.pem" -out "${public_key_filename}.pem" -pubout
+  if [ -z "$PRIVATE_KEY_FILENAME" ];
+  then
+      echo "Usage: $0 <PRIVATE_KEY_FILENAME> <PUBLIC_KEY_FILENAME> [EXT]" >&2
+      exit 1
+  fi
+
+  if [ -z "$EXT" ];
+  then
+      EXT="pem"
+  fi
+
+  openssl rsa -in "${PRIVATE_KEY_FILENAME}.${EXT}" -out "${PUBLIC_KEY_FILENAME}.${EXT}" -pubout
 }
 
 openssl_encrypt()
