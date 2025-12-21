@@ -17,6 +17,7 @@ openssl_private_key()
       EXT="pem"
   fi
 
+  echo "INFO: Generating pem private key at ${PRIVATE_KEY_FILENAME}" >&2
   openssl genrsa -out "${PRIVATE_KEY_FILENAME}.${EXT}" 1024
 }
 
@@ -37,6 +38,7 @@ openssl_public_key()
       EXT="pem"
   fi
 
+  echo "INFO: Generating pem public key at ${PUBLIC_KEY_FILENAME}" >&2
   openssl rsa -in "${PRIVATE_KEY_FILENAME}.${EXT}" -out "${PUBLIC_KEY_FILENAME}.${EXT}" -pubout
 }
 
