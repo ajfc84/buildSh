@@ -39,12 +39,7 @@ create_manifest_winget()
     WIN_PROJECT_NAME=$(to_camel_case "${PROJECT_NAME}")
     PACKAGE_ID="${VENDOR}.${WIN_PROJECT_NAME}"
 
-    # Normalize paths
-    PACKAGE_ID_LW=$(echo "$PACKAGE_ID" | tr '[:upper:]' '[:lower:]')
-    VENDOR_LW=$(echo "$VENDOR" | tr '[:upper:]' '[:lower:]')
-    WIN_PROJECT_NAME_LW=$(echo "$WIN_PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
-
-    MANIFESTS_DIR="${CI_PROJECT_DIR}/fx-repo/${WIN_REPO_MANIFEST_DIR}/${VENDOR_LW}/${WIN_PROJECT_NAME_LW}/${VERSION}"
+    MANIFESTS_DIR="${CI_PROJECT_DIR}/fx-repo/${WIN_REPO_MANIFEST_DIR}/${VENDOR}/${WIN_PROJECT_NAME}/${VERSION}"
     mkdir -p "$MANIFESTS_DIR"
 
     echo "INFO: Creating WinGet manifests at $MANIFESTS_DIR" >&2
@@ -53,7 +48,7 @@ create_manifest_winget()
     SHA256=$(sha256sum "${MSI_PATH}" | awk '{print $1}')
 
     # Base manifest
-    cat > "${MANIFESTS_DIR}/${PACKAGE_ID_LW}.yaml" <<EOF
+    cat > "${MANIFESTS_DIR}/${PACKAGE_ID}.yaml" <<EOF
 PackageIdentifier: $PACKAGE_ID
 PackageVersion: $VERSION
 PackageName: $WIN_PROJECT_NAME
@@ -65,7 +60,7 @@ ManifestVersion: 1.6.0
 EOF
 
     # Installer manifest
-    cat > "${MANIFESTS_DIR}/${PACKAGE_ID_LW}.installer.yaml" <<EOF
+    cat > "${MANIFESTS_DIR}/${PACKAGE_ID}.installer.yaml" <<EOF
 PackageIdentifier: $PACKAGE_ID
 PackageVersion: $VERSION
 InstallerType: msi
@@ -78,7 +73,7 @@ ManifestVersion: 1.6.0
 EOF
 
     # Locale manifest (pt-PT default)
-    cat > "${MANIFESTS_DIR}/${PACKAGE_ID_LW}.locale.pt-PT.yaml" <<EOF
+    cat > "${MANIFESTS_DIR}/${PACKAGE_ID}.locale.pt-PT.yaml" <<EOF
 PackageIdentifier: $PACKAGE_ID
 PackageVersion: $VERSION
 PackageLocale: pt-PT
