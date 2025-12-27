@@ -17,13 +17,13 @@ create_manifest_winget()
         exit 1
     fi
 
-    if [ -z "$VENDOR" ] || [ -z "$CI_REPOSITORY_URL" ] || [ -z "$WIN_REPO_MANIFEST_DIR" ];
+    if [ -z "$VENDOR" ] || [ -z "$CI_REPOSITORY_URL" ] || [ -z "$WIN_REPO_URL_PATH" ] || [ -z "$WIN_REPO_MANIFEST_DIR" ];
     then
-        echo "ERROR: $0 requires environment variables: VENDOR, CI_REPOSITORY_URL, WIN_REPO_MANIFEST_DIR" >&2
+        echo "ERROR: $0 requires environment variables: VENDOR, CI_REPOSITORY_URL, WIN_REPO_URL_PATH, WIN_REPO_MANIFEST_DIR" >&2
         exit 1
     fi
 
-    INSTALLER_URL="https://${CI_REPOSITORY_URL}${WIN_REPO_DIR}/${MSI_FILENAME}"    # ex: https://repo.fxshop.com/windows/fx-shop-print-1.0.0.msi
+    INSTALLER_URL="https://${CI_REPOSITORY_URL}/${WIN_REPO_URL_PATH}/${MSI_FILENAME}"    # ex: https://repo.fxshop.com/windows/fx-shop-print-1.0.0.msi
 
     if [ ! -f "$MSI_PATH" ];
     then
@@ -42,9 +42,9 @@ create_manifest_winget()
     # Normalize paths
     PACKAGE_ID_LW=$(echo "$PACKAGE_ID" | tr '[:upper:]' '[:lower:]')
     VENDOR_LW=$(echo "$VENDOR" | tr '[:upper:]' '[:lower:]')
-    PROJECT_NAME_LW=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
+    WIN_PROJECT_NAME_LW=$(echo "$WIN_PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
 
-    MANIFESTS_DIR="${CI_PROJECT_DIR}/fx-repo/${WIN_REPO_MANIFEST_DIR}/${VENDOR_LW}/${PROJECT_NAME_LW}/${VERSION}"
+    MANIFESTS_DIR="${CI_PROJECT_DIR}/fx-repo/${WIN_REPO_MANIFEST_DIR}/${VENDOR_LW}/${WIN_PROJECT_NAME_LW}/${VERSION}"
     mkdir -p "$MANIFESTS_DIR"
 
     echo "INFO: Creating WinGet manifests at $MANIFESTS_DIR" >&2
