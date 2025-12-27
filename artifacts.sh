@@ -10,7 +10,7 @@ upload_artifacts()
 
     if [ -z "$SOURCE_DIR" ] ||  [ -z "$REMOTE_DIR" ] ||  [ -z "$SRC_TYPE" ];
     then
-        echo "Usage: $0 upload_artifacts <SOURCE_DIR> <REMOTE_DIR> <SRC_TYPE> <file1> <file2> ..." >&2
+        echo "Usage: $0 <SOURCE_DIR> <REMOTE_DIR> <SRC_TYPE> <file1> <file2> ..." >&2
         exit 1
     fi
 
