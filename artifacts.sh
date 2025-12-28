@@ -14,9 +14,9 @@ upload_artifacts()
         exit 1
     fi
 
-    if [ -z "$CI_REPOSITORY_URL" ] ||  [ -z "$CI_REPOSITORY_USER" ];
+    if [ -z "$STORAGE_URL" ] ||  [ -z "$STORAGE_USER" ];
     then
-        echo "ERROR: $0 requires environment variables: CI_REPOSITORY_URL, CI_REPOSITORY_USER" >&2
+        echo "ERROR: $0 requires environment variables: STORAGE_URL, STORAGE_USER" >&2
         exit 1
     fi
 
@@ -33,9 +33,9 @@ upload_artifacts()
         exit 1
     fi
 
-    echo "Uploading artifacts to $CI_REPOSITORY_URL:$REMOTE_DIR"
+    echo "Uploading artifacts to $STORAGE_URL:$REMOTE_DIR"
 
-    ssh "${CI_REPOSITORY_USER}@$CI_REPOSITORY_URL" "mkdir -p '$REMOTE_DIR'"
+    ssh "${STORAGE_USER}@$STORAGE_URL" "mkdir -p '$REMOTE_DIR'"
 
     for a in "$@"; do
         artifact="${SOURCE_DIR}/$a"
@@ -44,8 +44,8 @@ upload_artifacts()
             continue
         fi
         echo "Uploading: $artifact"
-        scp -r "$artifact" "${CI_REPOSITORY_USER}@$CI_REPOSITORY_URL:$REMOTE_DIR/"
+        scp -r "$artifact" "${STORAGE_USER}@$STORAGE_URL:$REMOTE_DIR/"
     done
 
-    echo "Artifacts uploaded successfully to $CI_REPOSITORY_URL:$REMOTE_DIR"
+    echo "Artifacts uploaded successfully to $STORAGE_URL:$REMOTE_DIR"
 }
