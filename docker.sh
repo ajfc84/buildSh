@@ -83,21 +83,22 @@ docker_run()
     docker_login
     image=$(docker_pull "${ci_registry_image}" "${image_version}")
 
-    if [ -z "$CI" ];
-    then    
-        docker run -d \
-        --network host \
-        --restart always \
-        $@ \
-        --name "${project_name}" \
-        "${image}"
-    else
-        docker run -d \
-        --restart always \
-        $@ \
-        --name "${project_name}" \
-        "${image}"
-    fi
+    # if [ -z "$CI" ];
+    # then    
+    #     docker run -d \
+    #     --network host \
+    #     --restart always \
+    #     $@ \
+    #     --name "${project_name}" \
+    #     "${image}"
+    # else
+    docker run -d \
+    --network mynet \
+    --restart always \
+    $@ \
+    --name "${project_name}" \
+    "${image}"
+    # fi
 }
 
 docker_exec()
@@ -118,6 +119,7 @@ docker_exec()
     image=$(docker_pull "${ci_registry_image}" "${image_version}")
 
     docker run \
+    --network mynet \
     $@ \
     --name "${project_name}" \
     "${image}" \
