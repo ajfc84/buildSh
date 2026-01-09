@@ -18,10 +18,11 @@ runserver()
 {
     HOST="$1"
     PORT="$2"
+    BUILD_DIR="$3"
 
-    if [ -z "$HOST" ] ||  [ -z "$PORT" ];
+    if [ -z "$HOST" ] ||  [ -z "$PORT" ] ||  [ -z "$BUILD_DIR" ];
     then
-        echo "Usage: $0 <HOST> <PORT>" >&2
+        echo "Usage: $0 <HOST> <PORT> <BUILD_DIR>" >&2
         exit 1
     fi
 
@@ -45,8 +46,13 @@ runserver()
     echo "INFO: activating python environment" >&2
     . "${SUB_PROJECT_DIR}/.venv/bin/activate"
 
+    CWD=$(pwd)
+    cd "${SUB_PROJECT_DIR}/${BUILD_DIR}"
+
     echo "INFO: starting python server" >&2
-    python3 "${SUB_PROJECT_DIR}/${CI_PROJECT_NAME}-api/manage.py" runserver $HOST:$PORT
+    python3 manage.py runserver $HOST:$PORT
+
+    cd "${CWD}"
 
     echo "INFO: deactivating python environment" >&2
     deactivate
