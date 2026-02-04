@@ -38,9 +38,9 @@ docker_build() {
 
 docker_login()
 {
-    if [ "${CI_ENVIRONMENT_NAME}" = "local" ];
+    if [ -z "${CI_REGISTRY}" ];
     then
-        echo "Local environment does not need registry login"
+        echo "Public registry does not need login"
     elif [ "${CI_REGISTRY}" = "AWS" ];
     then
         echo "AWS registry login: "
@@ -60,7 +60,12 @@ docker_pull()
     ci_registry_image="${1}"
     image_version="${2}"
 
-    if docker image inspect "${ci_registry_image}:${image_version}" >/dev/null 2>&1; then
+    if docker image inspect "${ci_registry_image}:${image_version}" >/dev/null 2>&1;
+    then
+        echo "${ci_registry_image}:${image_version}"
+    elif [ -z "${CI_REGISTRY}" ];
+    then
+        docker pull "${ci_registry_image}:${image_version}" >/dev/null
         echo "${ci_registry_image}:${image_version}"
     else
         docker pull "${CI_REGISTRY}/${ci_registry_image}:${image_version}" >/dev/null
