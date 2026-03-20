@@ -123,11 +123,20 @@ docker_exec()
     docker_login
     image=$(docker_pull "${ci_registry_image}" "${image_version}")
 
-    docker run \
-    --network mynet \
-    $@ \
-    --name "${project_name}" \
-    "${image}" \
-    ${cmd} \
-    ${args}
+    if [ -n "${cmd}" ];
+    then
+        docker run \
+        --network mynet \
+        $@ \
+        --name "${project_name}" \
+        "${image}" \
+        ${cmd} \
+        ${args}
+    else
+        docker run \
+        --network mynet \
+        $@ \
+        --name "${project_name}" \
+        "${image}"
+    fi
 }
