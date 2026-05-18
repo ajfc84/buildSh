@@ -55,4 +55,8 @@ install()
     # Docker
     sudo usermod -aG docker $USER
     newgrp docker
+    # Ollama AI
+    curl -fsSL https://ollama.com/install.sh | sh
+    # restart
+    ollama pull deepseek-coder-v2:16b
 }
