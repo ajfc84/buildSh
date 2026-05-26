@@ -55,6 +55,22 @@ docker_login()
     fi
 }
 
+docker_push()
+{
+    docker_login
+
+    if [ -z "${CI_REGISTRY}" ] || [ "${CI_REGISTRY}" = "registry-1.docker.io" ];
+    then
+        docker push "${REGISTRY_IMAGE}:${IMAGE_VERSION}"
+    else
+        docker tag \
+            "${REGISTRY_IMAGE}:${IMAGE_VERSION}" \
+            "${CI_REGISTRY}/${REGISTRY_IMAGE}:${IMAGE_VERSION}"
+
+        docker push "${CI_REGISTRY}/${REGISTRY_IMAGE}:${IMAGE_VERSION}"
+    fi
+}
+
 docker_pull()
 {
     ci_registry_image="${1}"
